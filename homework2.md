@@ -31,21 +31,11 @@
 
 ## When is it recommended to prefer Unchecked Exceptions
 
-Checked Exceptions are great, so long as you understand when they should be used. The Java core API fails to follow these rules for SQLException (and sometimes for IOException) which is why they are so terrible.
-
-Checked Exceptions should be used for predictable, but unpreventable errors that are reasonable to recover from.
-
-Unchecked Exceptions should be used for everything else.
-
-I'll break this down for you, because most people misunderstand what this means.
-
-Predictable but unpreventable: The caller did everything within their power to validate the input parameters, but some condition outside their control has caused the operation to fail. For example, you try reading a file but someone deletes it between the time you check if it exists and the time the read operation begins. By declaring a checked exception, you are telling the caller to anticipate this failure.
-Reasonable to recover from: There is no point telling callers to anticipate exceptions that they cannot recover from. If a user attempts to read from an non-existing file, the caller can prompt them for a new filename. On the other hand, if the method fails due to a programming bug (invalid method arguments or buggy method implementation) there is nothing the application can do to fix the problem in mid-execution. The best it can do is log the problem and wait for the developer to fix it at a later time.
-Unless the exception you are throwing meets all of the above conditions it should use an Unchecked Exception.
-
-Reevaluate at every level: Sometimes the method catching the checked exception isn't the right place to handle the error. In that case, consider what is reasonable for your own callers. If the exception is predictable, unpreventable and reasonable for them to recover from then you should throw a checked exception yourself. If not, you should wrap the exception in an unchecked exception. If you follow this rule you will find yourself converting checked exceptions to unchecked exceptions and vice versa depending on what layer you are in.
-
-For both checked and unchecked exceptions, use the right abstraction level. For example, a code repository with two different implementations (database and filesystem) should avoid exposing implementation-specific details by throwing SQLException or IOException. Instead, it should wrap the exception in an abstraction that spans all implementations (e.g. RepositoryException).
+1. Checked Exceptions应该用于可预测但不可避免的错误，这些错误可以从中恢复。初次之外的应该使用未经检查的异常。
+2. 除非抛出的异常符合一下所有条件，否则应使用未经检查的异常。
+    1. 可预测但不可预防：调用者尽其所能来验证输入参数，但是他们控制之外的某些条件导致操作失败。例如，您尝试读取文件，但有人在您检查文件是否存在以及读取操作开始的时间之间删除它。通过声明已检查的异常，您告诉调用者预测此失败。
+    2. 合理恢复：没有必要告诉呼叫者预测他们无法恢复的异常。如果用户尝试从不存在的文件中读取，则调用者可以提示他们输入新文件名。另一方面，如果方法由于编程错误（无效的方法参数或错误的方法实现）而失败，那么应用程序无法在执行中期解决问题。它能做的最好的事情是记录问题并等待开发人员稍后修复它。
+3. 有时捕获已检查异常的方法不是处理错误的正确位置。在这种情况下，需要考虑对自己的调用者来说什么是合理的。如果异常是可预测的，不可避免且合理的，可以从那时恢复，应该抛出一个检查异常。如果不是，则应将异常包装在未经检查的异常中。
 
 <https://stackoverflow.com/questions/27578/when-to-choose-checked-and-unchecked-exceptions>
 
@@ -59,12 +49,9 @@ For both checked and unchecked exceptions, use the right abstraction level. For 
 
 ## Why are ENUMS important for Readable Code
 
-1. You should always use enums when a variable (especially a method parameter) can only take one out of a small set of possible values. Examples would be things like type constants (contract status: "permanent", "temp", "apprentice"), or flags ("execute now", "defer execution").
-
-If you use enums instead of integers (or String codes), you increase compile-time checking and avoid errors from passing in invalid constants, and you document which values are legal to use.
-
-BTW, overuse of enums might mean that your methods do too much (it's often better to have several separate methods, rather than one method that takes several flags which modify what it does), but if you have to use flags or type codes, enums are the way to go.
-As an example, which is better?
+1. 当变量（尤其是方法参数）只能从一集合可能的值中取出一个时，应使用枚举。例如类型常量（合同状态：“永久”，“临时”，“学徒”）或标志（“立即执行”，“延迟执行”）。
+2. 如果使用枚举而不是整数（或字符串代码），则增加编译时检查并避免传入无效常量时出错，并记录哪些值合法使用。
+3. 相比较于int类型，枚举类型更能够清晰地表示所表达的意义。
 
 <https://stackoverflow.com/questions/4709175/what-are-enums-and-why-are-they-useful>
 
@@ -84,8 +71,7 @@ As an example, which is better?
 ## What is functional programming
 
 1. 在维基百科上，函数式编程的定义如下："函数式编程是一种编程范式。它把计算当成是数学函数的求值，从而避免改变状态和使用可变数据。它是一种声明式的编程范式，通过表达式和声明而不是语句来编程。" （见 Functional Programming）
-2. 函数式编程的思想在软件开发领域由来已久。在众多的编程范式中，函数式编程虽然出现的时间很长，但是在编程范式领域和整个开发社区中的流行度一直不温不火。函数式编程有一部分狂热的支持者，在他们眼中，函数式编程思想是解决各种软件开发问题的终极方案；而另外的一部分人，则觉得函数式编程的思想并不容易理解，学习曲线较陡，上手起来也有一定的难度。大多数人更倾向于接受面向对象或是面向过程这样的编程范式。这也是造成函数式编程范式一直停留在小众阶段的原因。
-3. 随着计算机硬件多核的普及，为了尽可能地利用硬件平台的能力，并发编程显得尤为重要。与传统的命令式编程范式相比，函数式编程范式由于其天然的无状态特性，在并发编程中有着独特的优势。以 Java 平台来说，相信很多开发人员都对 Java 的多线程和并发编程有所了解。可能最直观的感受是，Java 平台的多线程和并发编程并不容易掌握。这主要是因为其中所涉及的概念太多，从 Java 内存模型，到底层原语 synchronized 和 wait/notify，再到 java.util.concurrent 包中的高级同步对象。由于并发编程的复杂性，即使是经验丰富的开发人员，也很难保证多线程代码不出现错误。很多错误只在运行时的特定情况下出现，很难排错和修复。在学习如何更好的进行并发编程的同时，我们可以从另外一个角度来看待这个问题。多线程编程的问题根源在于对共享变量的并发访问。如果这样的访问并不需要存在，那么自然就不存在多线程相关的问题。在函数式编程范式中，函数中并不存在可变的状态，也就不需要对它们的访问进行控制。这就从根本上避免了多线程的问题。
+2. 随着计算机硬件多核的普及，为了尽可能地利用硬件平台的能力，并发编程显得尤为重要。与传统的命令式编程范式相比，函数式编程范式由于其天然的无状态特性，在并发编程中有着独特的优势。以 Java 平台来说，相信很多开发人员都对 Java 的多线程和并发编程有所了解。可能最直观的感受是，Java 平台的多线程和并发编程并不容易掌握。这主要是因为其中所涉及的概念太多，从 Java 内存模型，到底层原语 synchronized 和 wait/notify，再到 java.util.concurrent 包中的高级同步对象。由于并发编程的复杂性，即使是经验丰富的开发人员，也很难保证多线程代码不出现错误。很多错误只在运行时的特定情况下出现，很难排错和修复。在学习如何更好的进行并发编程的同时，我们可以从另外一个角度来看待这个问题。多线程编程的问题根源在于对共享变量的并发访问。如果这样的访问并不需要存在，那么自然就不存在多线程相关的问题。在函数式编程范式中，函数中并不存在可变的状态，也就不需要对它们的访问进行控制。这就从根本上避免了多线程的问题。
 
 <https://www.ibm.com/developerworks/cn/java/j-understanding-functional-programming-1/index.html>
 
@@ -110,3 +96,5 @@ As an example, which is better?
 
 ## Why should you build the riskiest high priority features first
 
+1. 项目开始阶段开始做高风险高优先级的功能可以有效降低项目整体风险
+2. 高风险的功能一般来说设计与实现比较难，首先尝试高风险的功能，如果在尝试阶段发现该功能设计或者实现不合理，可以立即做出调整；否则在项目后期做出调整的难度和成本会很高。
